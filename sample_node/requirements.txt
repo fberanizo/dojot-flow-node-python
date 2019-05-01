@@ -1,1 +1,1 @@
-dojot-flow-node==0.0.9
+dojot-flow-node==0.0.10

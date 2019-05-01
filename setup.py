@@ -45,7 +45,7 @@ setuptools.setup(
     name='dojot-flow-node',
     description='Dojot flow node.',
     long_description=long_description,
-    version='0.0.9',
+    version='0.0.10',
 
     packages=setuptools.find_packages(),
     include_package_data=True,

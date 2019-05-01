@@ -19,7 +19,7 @@ class DojotHandler:
         ]))
 
     async def router(self):
-        socket = self.ctx.socket(zmq.REP)
+        socket = self.ctx.socket(zmq.ROUTER)
         socket.bind('tcp://*:' + str(self.port))
         print('zmq listening on %s' % str(self.port))
 
@@ -27,7 +27,7 @@ class DojotHandler:
             # keep listening to all published message on topic 'world'
             while True:
                 try:
-                    packet = await socket.recv(0)
+                    [identity, packet] = await socket.recv_multipart()
                 except zmq.ZMQError as e:
                     if e.errno == zmq.EAGAIN:
                         pass # no message was ready
@@ -42,10 +42,18 @@ class DojotHandler:
                         continue
 
                     try:
-                        response = self.handle_request(request)
-                        socket.send(json.dumps(response).encode('utf8'))
+                        response = self.handle_request(request['payload'])
+                        response_packet = {
+                            'payload': response,
+                            'requestId': request['requestId']
+                        }
+                        socket.send_multipart([identity, json.dumps(response_packet).encode('utf8')])
                     except Exception as e:
-                        socket.send(json.dumps({'error': str(e)}).encode('utf8'))
+                        response_packet = {
+                            'payload': str(e),
+                            'requestId': request['requestId']
+                        }
+                        socket.send_multipart([identity, json.dumps(response_packet).encode('utf8')])
 
         except Exception as e:
             print('Error with sub world')
